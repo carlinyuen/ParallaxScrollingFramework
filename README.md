@@ -7,6 +7,7 @@ Keywords: ios, iphone, ipad, parallax, scrolling, scrollview, uiview, animation,
 
 ## About
 Did you see that [IFTTT app](https://itunes.apple.com/us/app/ifttt/id660944635?mt=8) tutorial? Daymn some smooth moves there.
+
 The word on the street was that the tutorial was made with JS/CSS/HTML5 though,
 so here's my attempt at a native solution: the **ParallaxScrollingFramework**.
 
