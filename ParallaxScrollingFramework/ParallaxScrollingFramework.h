@@ -10,14 +10,25 @@
 #import <Foundation/Foundation.h>
 
 	extern NSString* const ParallaxScrollingKeyFrameOffset;
-	extern NSString* const ParallaxScrollingKeyFrameOriginX;
-	extern NSString* const ParallaxScrollingKeyFrameOriginY;
+	extern NSString* const ParallaxScrollingKeyFrameTranslateX;
+	extern NSString* const ParallaxScrollingKeyFrameTranslateY;
 	extern NSString* const ParallaxScrollingKeyFrameAlpha;
 	extern NSString* const ParallaxScrollingKeyFrameScaleX;
 	extern NSString* const ParallaxScrollingKeyFrameScaleY;
 	extern NSString* const ParallaxScrollingKeyFrameRotation;
 
+	typedef enum {
+		ParallaxScrollingFrameworkDirectionHorizontal,
+		ParallaxScrollingFrameworkDirectionVertical
+	} ParallaxScrollingFrameworkDirection;
+
 @interface ParallaxScrollingFramework : NSObject
+
+	/** Set tracking on horizontal or vertical scroll */
+	@property (nonatomic, assign) ParallaxScrollingFrameworkDirection direction;
+
+	/** Scrollview to create parallax animation on */
+	@property (nonatomic, weak) UIScrollView* scrollView;
 
 	/** @brief Sets a keyframe for a given view (that we hash to keep track of).
 			We will automatically interpolate between keyframes (linearly only)
@@ -29,8 +40,8 @@
 			to take effect during scrolling). Example:
 			@{
 				ParallaxScrollingKeyFrameOffset : @(300),
-				ParallaxScrollingKeyFrameOriginX : @(target.x),
-				ParallaxScrollingKeyFrameOriginY : @(target.y),
+				ParallaxScrollingKeyFrameTranslateX : @(target.x),
+				ParallaxScrollingKeyFrameTranslateY : @(target.y),
 				ParallaxScrollingKeyFrameScaleX : @(1.2)
 				ParallaxScrollingKeyFrameScaleY : @(1.2)
 				ParallaxScrollingKeyFrameAlpha : @(.8),
@@ -53,9 +64,9 @@
 		@param view UIView that you want to keyframe on.
 	*/
 	- (void)setKeyFrameWithOffset:(float)offset
-		origin:(CGPoint)origin
+		translate:(CGPoint)translation
 		scale:(CGSize)scale
-		rotation:(float)rotation
+		rotate:(float)rotation
 		alpha:(float)alpha
 		forView:(UIView*)view;
 

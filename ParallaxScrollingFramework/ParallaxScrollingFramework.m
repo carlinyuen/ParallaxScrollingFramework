@@ -11,8 +11,8 @@
 
 	NSString* const ParallaxScrollingKeyFrameOffset = @"offset";
 	NSString* const ParallaxScrollingKeyFrameAlpha = @"alpha";
-	NSString* const ParallaxScrollingKeyFrameOriginX = @"originX";
-	NSString* const ParallaxScrollingKeyFrameOriginY = @"originY";
+	NSString* const ParallaxScrollingKeyFrameTranslateX = @"translationX";
+	NSString* const ParallaxScrollingKeyFrameTranslateY = @"translationY";
 	NSString* const ParallaxScrollingKeyFrameScaleX = @"scaleX";
 	NSString* const ParallaxScrollingKeyFrameScaleY = @"scaleY";
 	NSString* const ParallaxScrollingKeyFrameRotation = @"rotation";
@@ -21,9 +21,6 @@
 	#define KEYFRAME_KEY_FRAMES @"frames"
 
 @interface ParallaxScrollingFramework()
-
-	/** Scrollview to create parallax animation on */
-	@property (nonatomic, weak) UIScrollView* scrollView;
 
 	/** Keyframes for hashed views */
 	@property (nonatomic, strong) NSMutableDictionary* keyframes;
@@ -39,6 +36,8 @@
     if (self) {
 		_keyframes = [[NSMutableDictionary alloc] init];
 		
+		_direction = ParallaxScrollingFrameworkDirectionHorizontal;
+		
 		[self setScrollView:scrollView];
     }
     return self;
@@ -53,12 +52,12 @@
 		behavior is likely (they will default all to 0). If a keyframe
 		already exists at the offset, it will be overwritten.
 	@param frame A dictionary of properties you want to affect 
-		(origin == translation, and offset == where you want the keyframe
+		(translation == translation, and offset == where you want the keyframe
 		to take effect during scrolling). Example:
 		@{
 			ParallaxScrollingKeyFrameOffset : @(300),
-			ParallaxScrollingKeyFrameOriginX : @(target.x),
-			ParallaxScrollingKeyFrameOriginY : @(target.y),
+			ParallaxScrollingKeyFrameTranslateX : @(target.x),
+			ParallaxScrollingKeyFrameTranslateY : @(target.y),
 			ParallaxScrollingKeyFrameScaleX : @(1.2)
 			ParallaxScrollingKeyFrameScaleY : @(1.2)
 			ParallaxScrollingKeyFrameAlpha : @(.8),
@@ -71,7 +70,6 @@
 	NSNumber* hash = @([view hash]);
 	NSMutableDictionary* data = [self.keyframes objectForKey:hash];
 	if (!data) {
-		debugLog(@"creating new view data");
 		[self.keyframes setObject:[[NSMutableDictionary alloc] init] forKey:hash];
 		data = [self.keyframes objectForKey:hash];
 		[data setObject:view forKey:KEYFRAME_KEY_VIEW];
@@ -79,13 +77,11 @@
 
 	NSMutableArray* frames = [data objectForKey:KEYFRAME_KEY_FRAMES];
 	if (!frames) {
-		debugLog(@"creating new frames");
 		[data setObject:[[NSMutableArray alloc] init] forKey:KEYFRAME_KEY_FRAMES];
 		frames = [data objectForKey:KEYFRAME_KEY_FRAMES];
 	}
 	
 	int index = [self indexOfInsertion:frame inArray:frames];
-	debugLog(@"setKeyFrame: %i indexOfInsertion: %i", frames.count, index);
 	
 	[frames insertObject:frame atIndex:index];
 }
@@ -96,20 +92,20 @@
 		behavior is likely (they will default all to 0). If a keyframe
 		already exists at the offset, it will be overwritten.
 	@param offset Where during the scroll to keyframe.
-	@param origin Essentially a affine translation, where to position the element. Will be relative to their frame.origin.
+	@param translation Essentially a affine translation, where to position the element. Will be relative to their frame.translation.
 	@param scale Scaling for UIView in both x & y axes, negative to flip.
 	@param rotation Rotation for UIView, in radians.
 	@param alpha Transparency for UIView, from 0 to 1.
 	@param view UIView that you want to keyframe on.
 */
-- (void)setKeyFrameWithOffset:(float)offset origin:(CGPoint)origin
-	scale:(CGSize)scale rotation:(float)rotation alpha:(float)alpha
+- (void)setKeyFrameWithOffset:(float)offset translate:(CGPoint)translation
+	scale:(CGSize)scale rotate:(float)rotation alpha:(float)alpha
 	forView:(UIView*)view
 {
 	[self setKeyFrame:@{
 		ParallaxScrollingKeyFrameOffset : @(offset),
-		ParallaxScrollingKeyFrameOriginX : @(origin.x),
-		ParallaxScrollingKeyFrameOriginY : @(origin.y),
+		ParallaxScrollingKeyFrameTranslateX : @(translation.x),
+		ParallaxScrollingKeyFrameTranslateY : @(translation.y),
 		ParallaxScrollingKeyFrameScaleX : @(scale.width),
 		ParallaxScrollingKeyFrameScaleY : @(scale.height),
 		ParallaxScrollingKeyFrameRotation : @(rotation),
@@ -140,8 +136,16 @@
 /** @brief Called everytime the content offset changes on the observed scrollView. Updates the affine transform for views. */
 - (void)updateFrame
 {
-	float offset = self.scrollView.contentOffset.y;
-	debugLog(@"updateFrame: %f", offset);
+	float offset = 0;
+	switch (self.direction) {
+		case ParallaxScrollingFrameworkDirectionVertical:
+			offset = self.scrollView.contentOffset.y;
+			break;
+			
+		case ParallaxScrollingFrameworkDirectionHorizontal:
+		default:
+			offset = self.scrollView.contentOffset.x;
+	}
 
 	// Iterate through all the keys (objects that have been keyframed)
 	[self.keyframes enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop)
@@ -154,7 +158,7 @@
 		} inArray:frames];
 		NSDictionary* prev = (index > 0) ? frames[index - 1] : nil;
 		NSDictionary* next = (index < frames.count) ? frames[index] : nil;
-		CGPoint origin;
+		CGPoint translation;
 		CGSize scale;
 		float alpha = 0, rotation = 0;
 		
@@ -164,9 +168,9 @@
 			&& ([prev[ParallaxScrollingKeyFrameOffset] floatValue] == offset
 				|| !next))
 		{
-			origin = CGPointMake(
-				[prev[ParallaxScrollingKeyFrameOriginX] floatValue],
-				[prev[ParallaxScrollingKeyFrameOriginY] floatValue]
+			translation = CGPointMake(
+				[prev[ParallaxScrollingKeyFrameTranslateX] floatValue],
+				[prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
 			);
 			scale = CGSizeMake(
 				[prev[ParallaxScrollingKeyFrameScaleX] floatValue],
@@ -179,9 +183,9 @@
 			&& ([next[ParallaxScrollingKeyFrameOffset] floatValue] == offset
 				|| !prev))
 		{
-			origin = CGPointMake(
-				[next[ParallaxScrollingKeyFrameOriginX] floatValue],
-				[next[ParallaxScrollingKeyFrameOriginY] floatValue]
+			translation = CGPointMake(
+				[next[ParallaxScrollingKeyFrameTranslateX] floatValue],
+				[next[ParallaxScrollingKeyFrameTranslateY] floatValue]
 			);
 			scale = CGSizeMake(
 				[next[ParallaxScrollingKeyFrameScaleX] floatValue],
@@ -197,13 +201,13 @@
 				= (offset - startOffset)
 					/ ([next[ParallaxScrollingKeyFrameOffset] floatValue] - startOffset);
 				
-			origin = CGPointMake(
-				[self interpolate: [prev[ParallaxScrollingKeyFrameOriginX] floatValue]
-					with: [next[ParallaxScrollingKeyFrameOriginX] floatValue]
+			translation = CGPointMake(
+				[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateX] floatValue]
+					with: [next[ParallaxScrollingKeyFrameTranslateX] floatValue]
 					to: interpolation
 				],
-				[self interpolate: [prev[ParallaxScrollingKeyFrameOriginY] floatValue]
-					with: [next[ParallaxScrollingKeyFrameOriginY] floatValue]
+				[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
+					with: [next[ParallaxScrollingKeyFrameTranslateY] floatValue]
 					to: interpolation
 				]
 			);
@@ -240,19 +244,19 @@
 				CGAffineTransformRotate(
 					CGAffineTransformTranslate(
 						CGAffineTransformIdentity,
-						origin.x, origin.y),
+						translation.x, translation.y),
 					rotation),
 				scale.width, scale.height);
 				
 		// Debugging
-//		debugObject((@{
-//			ParallaxScrollingKeyFrameOriginX : @(origin.x),
-//			ParallaxScrollingKeyFrameOriginY : @(origin.y),
+//		NSLog(@"%@", @{
+//			ParallaxScrollingKeyFrameTranslateX : @(translation.x),
+//			ParallaxScrollingKeyFrameTranslateY : @(translation.y),
 //			ParallaxScrollingKeyFrameScaleX : @(scale.width),
 //			ParallaxScrollingKeyFrameScaleY : @(scale.height),
 //			ParallaxScrollingKeyFrameRotation : @(rotation),
 //			ParallaxScrollingKeyFrameAlpha : @(alpha)
-//		}));
+//		});
 	}];
 }
 
