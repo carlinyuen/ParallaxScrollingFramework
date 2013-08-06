@@ -6,11 +6,11 @@ Simple framework for keyframing parallax scrolling animations of UIViews in an i
 Keywords: ios, iphone, ipad, parallax, scrolling, scrollview, uiview, animation, tutorial, walkthrough, framework
 
 ## About
-Did you see that IFTTT app tutorial? Daymn some smooth moves there. The word on
-the street was that the tutorial was made with JS/CSS/HTML5 though, and here's
-my attempt at a native solution for that: the **ParallaxScrollingFramework**.
+Did you see that [IFTTT app](https://itunes.apple.com/us/app/ifttt/id660944635?mt=8) tutorial? Daymn some smooth moves there.
+The word on the street was that the tutorial was made with JS/CSS/HTML5 though,
+so here's my attempt at a native solution: the **ParallaxScrollingFramework**.
 
-### Features of this framework:
+### Features
  * Keyframe animation with any UIView based on scroll position of UIScrollView.
  * Simple, easy, integration. Works for vertical or horizontal scrolling.
  * Handles affine transforms and transparency, manages keyframes automatically.
