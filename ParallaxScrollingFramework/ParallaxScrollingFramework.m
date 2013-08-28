@@ -33,10 +33,13 @@
 - (id)initWithScrollView:(UIScrollView *)scrollView
 {
     self = [super init];
-    if (self) {
+    if (self)
+	{
 		_keyframes = [[NSMutableDictionary alloc] init];
 		
 		_direction = ParallaxScrollingFrameworkDirectionHorizontal;
+		
+		_enabled = true;
 		
 		[self setScrollView:scrollView];
     }
@@ -153,84 +156,101 @@
 		// Setup & get frames to interpolate with
 		UIView* view = [(NSDictionary*)obj objectForKey:KEYFRAME_KEY_VIEW];
 		NSArray* frames = [(NSDictionary*)obj objectForKey:KEYFRAME_KEY_FRAMES];
-		int index = [self indexOfInsertion:@{
-			ParallaxScrollingKeyFrameOffset : @(offset)
-		} inArray:frames];
-		NSDictionary* prev = (index > 0) ? frames[index - 1] : nil;
-		NSDictionary* next = (index < frames.count) ? frames[index] : nil;
-		CGPoint translation;
+
+		// If not enabled, use first keyframe
 		CGSize scale;
+		CGPoint translation;
 		float alpha = 0, rotation = 0;
-		
-		// If we hit any frames dead on, or if one keyframe exists and
-		//	the other doesn't, then we skip interpolation.
-		if (prev
-			&& ([prev[ParallaxScrollingKeyFrameOffset] floatValue] == offset
-				|| !next))
-		{
+		if (!self.enabled) {
 			translation = CGPointMake(
-				[prev[ParallaxScrollingKeyFrameTranslateX] floatValue],
-				[prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
+				[frames[0][ParallaxScrollingKeyFrameTranslateX] floatValue],
+				[frames[0][ParallaxScrollingKeyFrameTranslateY] floatValue]
 			);
 			scale = CGSizeMake(
-				[prev[ParallaxScrollingKeyFrameScaleX] floatValue],
-				[prev[ParallaxScrollingKeyFrameScaleY] floatValue]
+				[frames[0][ParallaxScrollingKeyFrameScaleX] floatValue],
+				[frames[0][ParallaxScrollingKeyFrameScaleY] floatValue]
 			);
-			alpha = [prev[ParallaxScrollingKeyFrameAlpha] floatValue];
-			rotation = [prev[ParallaxScrollingKeyFrameRotation] floatValue];
+			alpha = [frames[0][ParallaxScrollingKeyFrameAlpha] floatValue];
+			rotation = [frames[0][ParallaxScrollingKeyFrameRotation] floatValue];
 		}
-		else if (next
-			&& ([next[ParallaxScrollingKeyFrameOffset] floatValue] == offset
-				|| !prev))
+		else	// Animator enabled, find proper keyframe
 		{
-			translation = CGPointMake(
-				[next[ParallaxScrollingKeyFrameTranslateX] floatValue],
-				[next[ParallaxScrollingKeyFrameTranslateY] floatValue]
-			);
-			scale = CGSizeMake(
-				[next[ParallaxScrollingKeyFrameScaleX] floatValue],
-				[next[ParallaxScrollingKeyFrameScaleY] floatValue]
-			);
-			alpha = [next[ParallaxScrollingKeyFrameAlpha] floatValue];
-			rotation = [next[ParallaxScrollingKeyFrameRotation] floatValue];
-		}
-		else if (prev && next)	// Have to interpolate between the two points
-		{
-			float startOffset = [prev[ParallaxScrollingKeyFrameOffset] floatValue];
-			float interpolation
-				= (offset - startOffset)
-					/ ([next[ParallaxScrollingKeyFrameOffset] floatValue] - startOffset);
-				
-			translation = CGPointMake(
-				[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateX] floatValue]
-					with: [next[ParallaxScrollingKeyFrameTranslateX] floatValue]
+			int index = [self indexOfInsertion:@{
+				ParallaxScrollingKeyFrameOffset : @(offset)
+			} inArray:frames];
+			NSDictionary* prev = (index > 0) ? frames[index - 1] : nil;
+			NSDictionary* next = (index < frames.count) ? frames[index] : nil;
+
+			// If we hit any frames dead on, or if one keyframe exists and
+			//	the other doesn't, then we skip interpolation.
+			if (prev
+				&& ([prev[ParallaxScrollingKeyFrameOffset] floatValue] == offset
+					|| !next))
+			{
+				translation = CGPointMake(
+					[prev[ParallaxScrollingKeyFrameTranslateX] floatValue],
+					[prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
+				);
+				scale = CGSizeMake(
+					[prev[ParallaxScrollingKeyFrameScaleX] floatValue],
+					[prev[ParallaxScrollingKeyFrameScaleY] floatValue]
+				);
+				alpha = [prev[ParallaxScrollingKeyFrameAlpha] floatValue];
+				rotation = [prev[ParallaxScrollingKeyFrameRotation] floatValue];
+			}
+			else if (next
+				&& ([next[ParallaxScrollingKeyFrameOffset] floatValue] == offset
+					|| !prev))
+			{
+				translation = CGPointMake(
+					[next[ParallaxScrollingKeyFrameTranslateX] floatValue],
+					[next[ParallaxScrollingKeyFrameTranslateY] floatValue]
+				);
+				scale = CGSizeMake(
+					[next[ParallaxScrollingKeyFrameScaleX] floatValue],
+					[next[ParallaxScrollingKeyFrameScaleY] floatValue]
+				);
+				alpha = [next[ParallaxScrollingKeyFrameAlpha] floatValue];
+				rotation = [next[ParallaxScrollingKeyFrameRotation] floatValue];
+			}
+			else if (prev && next)	// Have to interpolate between the two points
+			{
+				float startOffset = [prev[ParallaxScrollingKeyFrameOffset] floatValue];
+				float interpolation
+					= (offset - startOffset)
+						/ ([next[ParallaxScrollingKeyFrameOffset] floatValue] - startOffset);
+					
+				translation = CGPointMake(
+					[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateX] floatValue]
+						with: [next[ParallaxScrollingKeyFrameTranslateX] floatValue]
+						to: interpolation
+					],
+					[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
+						with: [next[ParallaxScrollingKeyFrameTranslateY] floatValue]
+						to: interpolation
+					]
+				);
+				scale = CGSizeMake(
+					[self interpolate: [prev[ParallaxScrollingKeyFrameScaleX] floatValue]
+						with: [next[ParallaxScrollingKeyFrameScaleX] floatValue]
+						to: interpolation
+					],
+					[self interpolate: [prev[ParallaxScrollingKeyFrameScaleY] floatValue]
+						with: [next[ParallaxScrollingKeyFrameScaleY] floatValue]
+						to: interpolation
+					]
+				);
+				alpha = [self
+					interpolate: [prev[ParallaxScrollingKeyFrameAlpha] floatValue]
+					with: [next[ParallaxScrollingKeyFrameAlpha] floatValue]
 					to: interpolation
-				],
-				[self interpolate: [prev[ParallaxScrollingKeyFrameTranslateY] floatValue]
-					with: [next[ParallaxScrollingKeyFrameTranslateY] floatValue]
+				];
+				rotation = [self
+					interpolate: [prev[ParallaxScrollingKeyFrameRotation] floatValue]
+					with: [next[ParallaxScrollingKeyFrameRotation] floatValue]
 					to: interpolation
-				]
-			);
-			scale = CGSizeMake(
-				[self interpolate: [prev[ParallaxScrollingKeyFrameScaleX] floatValue]
-					with: [next[ParallaxScrollingKeyFrameScaleX] floatValue]
-					to: interpolation
-				],
-				[self interpolate: [prev[ParallaxScrollingKeyFrameScaleY] floatValue]
-					with: [next[ParallaxScrollingKeyFrameScaleY] floatValue]
-					to: interpolation
-				]
-			);
-			alpha = [self
-				interpolate: [prev[ParallaxScrollingKeyFrameAlpha] floatValue]
-				with: [next[ParallaxScrollingKeyFrameAlpha] floatValue]
-				to: interpolation
-			];
-			rotation = [self
-				interpolate: [prev[ParallaxScrollingKeyFrameRotation] floatValue]
-				with: [next[ParallaxScrollingKeyFrameRotation] floatValue]
-				to: interpolation
-			];
+				];
+			}
 		}
 
 		// Only change if in range
@@ -247,7 +267,7 @@
 						translation.x, translation.y),
 					rotation),
 				scale.width, scale.height);
-				
+
 		// Debugging
 //		NSLog(@"%@", @{
 //			ParallaxScrollingKeyFrameTranslateX : @(translation.x),

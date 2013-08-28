@@ -17,6 +17,7 @@ so here's my attempt at a native solution: the **ParallaxScrollingFramework**.
  * Handles affine transforms and transparency, manages keyframes automatically.
  * Hashes UIViews to keep track of them, no need for keeping track of string keys.
  * Interpolates between keyframes linearly, working on cubic interpolation.
+ * Ability to enable and disable animation (will default to first keyframe).
 
 ### Details
 Properties you can keyframe on:

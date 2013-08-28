@@ -27,6 +27,9 @@
 	/** Set tracking on horizontal or vertical scroll */
 	@property (nonatomic, assign) ParallaxScrollingFrameworkDirection direction;
 
+	/** Turn on and off animator */
+	@property (nonatomic, assign) bool enabled;
+
 	/** Scrollview to create parallax animation on */
 	@property (nonatomic, weak) UIScrollView* scrollView;
 
