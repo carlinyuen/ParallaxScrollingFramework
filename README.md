@@ -31,7 +31,7 @@ Properties you can keyframe on:
 You can set this up on any UIScrollView in seconds! Just a few easy steps:
 
  1. #import "ParallaxScrollingFramework.h"
- 2. @property (nonatomic, strong) ParllaxScrollingFramework \*animator;
+ 2. @property (nonatomic, strong) ParallaxScrollingFramework \*animator;
  3. self.animator = [[ParallaxScrollingFramework alloc] initWithScrollView:self.scrollView];
 
 And that's it! You're ready to go. All you have to do now, is add some keyframes
