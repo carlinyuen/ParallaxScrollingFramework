@@ -101,8 +101,8 @@
 	@param alpha Transparency for UIView, from 0 to 1.
 	@param view UIView that you want to keyframe on.
 */
-- (void)setKeyFrameWithOffset:(float)offset translate:(CGPoint)translation
-	scale:(CGSize)scale rotate:(float)rotation alpha:(float)alpha
+- (void)setKeyFrameWithOffset:(CGFloat)offset translate:(CGPoint)translation
+	scale:(CGSize)scale rotate:(CGFloat)rotation alpha:(CGFloat)alpha
 	forView:(UIView*)view
 {
 	[self setKeyFrame:@{
@@ -139,7 +139,7 @@
 /** @brief Called everytime the content offset changes on the observed scrollView. Updates the affine transform for views. */
 - (void)updateFrame
 {
-	float offset = 0;
+	CGFloat offset = 0;
 	switch (self.direction) {
 		case ParallaxScrollingFrameworkDirectionVertical:
 			offset = self.scrollView.contentOffset.y;
@@ -160,7 +160,7 @@
 		// If not enabled, use first keyframe
 		CGSize scale;
 		CGPoint translation;
-		float alpha = 0, rotation = 0;
+		CGFloat alpha = 0, rotation = 0;
 		if (!self.enabled) {
 			translation = CGPointMake(
 				[frames[0][ParallaxScrollingKeyFrameTranslateX] floatValue],
@@ -215,8 +215,8 @@
 			}
 			else if (prev && next)	// Have to interpolate between the two points
 			{
-				float startOffset = [prev[ParallaxScrollingKeyFrameOffset] floatValue];
-				float interpolation
+				CGFloat startOffset = [prev[ParallaxScrollingKeyFrameOffset] floatValue];
+				CGFloat interpolation
 					= (offset - startOffset)
 						/ ([next[ParallaxScrollingKeyFrameOffset] floatValue] - startOffset);
 					
@@ -314,7 +314,7 @@
 	@param f2 Ending point
 	@param f3 Scale between 0-1 to interpolate to, 0 = f1, 1 = f2.
 */
-- (float)interpolate:(float)f1 with:(float)f2 to:(float)f3
+- (CGFloat)interpolate:(CGFloat)f1 with:(CGFloat)f2 to:(CGFloat)f3
 {
 	return (f2 - f1) * f3 + f1;
 }

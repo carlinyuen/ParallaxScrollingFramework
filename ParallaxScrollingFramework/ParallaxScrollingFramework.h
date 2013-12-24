@@ -66,11 +66,11 @@
 		@param alpha Transparency for UIView, from 0 to 1.
 		@param view UIView that you want to keyframe on.
 	*/
-	- (void)setKeyFrameWithOffset:(float)offset
+	- (void)setKeyFrameWithOffset:(CGFloat)offset
 		translate:(CGPoint)translation
 		scale:(CGSize)scale
-		rotate:(float)rotation
-		alpha:(float)alpha
+		rotate:(CGFloat)rotation
+		alpha:(CGFloat)alpha
 		forView:(UIView*)view;
 
 	/** @brief Removes all keyframes that were set for a given view, or if no
