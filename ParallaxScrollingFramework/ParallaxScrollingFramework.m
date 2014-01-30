@@ -19,6 +19,7 @@
 
 	#define KEYFRAME_KEY_VIEW @"view"
 	#define KEYFRAME_KEY_FRAMES @"frames"
+    #define KEYPATH_OBSERVER @"contentOffset"
 
 @interface ParallaxScrollingFramework()
 
@@ -44,6 +45,12 @@
 		[self setScrollView:scrollView];
     }
     return self;
+}
+
+- (void)dealloc
+{
+    // Make sure we remove observer from scrollview
+	[_scrollView removeObserver:self forKeyPath:KEYPATH_OBSERVER];
 }
 
 
@@ -286,9 +293,9 @@
 /** @brief Set new scrollView */
 - (void)setScrollView:(UIScrollView *)scrollView
 {
-	[_scrollView removeObserver:self forKeyPath:@"contentOffset"];
+	[_scrollView removeObserver:self forKeyPath:KEYPATH_OBSERVER];
 	_scrollView = scrollView;
-	[_scrollView addObserver:self forKeyPath:@"contentOffset"
+	[_scrollView addObserver:self forKeyPath:KEYPATH_OBSERVER
 		options:NSKeyValueObservingOptionNew context:nil];
 }
 
