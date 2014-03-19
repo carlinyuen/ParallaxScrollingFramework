@@ -91,7 +91,7 @@
 		frames = [data objectForKey:KEYFRAME_KEY_FRAMES];
 	}
 	
-	int index = [self indexOfInsertion:frame inArray:frames];
+	NSInteger index = [self indexOfInsertion:frame inArray:frames];
 	
 	[frames insertObject:frame atIndex:index];
 }
@@ -182,7 +182,7 @@
 		}
 		else	// Animator enabled, find proper keyframe
 		{
-			int index = [self indexOfInsertion:@{
+			NSInteger index = [self indexOfInsertion:@{
 				ParallaxScrollingKeyFrameOffset : @(offset)
 			} inArray:frames];
 			NSDictionary* prev = (index > 0) ? frames[index - 1] : nil;
@@ -303,7 +303,7 @@
 #pragma mark - Utilty Functions
 
 /** @brief Returns index of insertion */
-- (int)indexOfInsertion:(NSDictionary*)obj inArray:(NSArray*)array
+- (NSInteger)indexOfInsertion:(NSDictionary*)obj inArray:(NSArray*)array
 {
 	return [array indexOfObject:obj
 		inSortedRange:NSMakeRange(0, array.count)
